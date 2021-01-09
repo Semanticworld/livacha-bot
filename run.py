@@ -1,16 +1,20 @@
-import requests
 from bs4 import BeautifulSoup
 import base64
-import random
 import json
+import os
+import random
+import requests
+import ssl
 import time
 import websocket
 from websocket import create_connection, WebSocket
-import ssl
+
+login = os.environ.get('LIVACHA_USER')
+password = os.environ.get('LIVACHA_PASS')
 
 payload = {
-    'login': '',
-    'password': '',
+    'login': login,
+    'password': password,
     'remember': '1' }
 
 pong = {
@@ -23,10 +27,6 @@ def auth():
         'Accept': 'application/json'
         }
 
-#    headers['Sec-WebSocket-Key'] = str(base64.b64encode(bytes([random.randint(0, 255) for _ in range(16)])), 'ascii')
-#    headers['Sec-WebSocket-Version'] = '13'
-#    headers['Upgrade'] = 'websocket'
-
     session = requests.Session()
     r = session.get("https://livacha.com/login", headers=headers)
     soup = BeautifulSoup(r.content, 'html.parser')
@@ -36,10 +36,6 @@ def auth():
 
     r = session.post("https://livacha.com/login", data=payload, headers=headers)
     r = session.get("https://livacha.com", headers=headers)
-
-    f = open('result.html','w+')
-    f.write(r.text)
-    f.close()
 
     cookies = session.cookies.get_dict()
     headers['Cookie'] = "; ".join(["%s=%s" %(i, j) for i, j in cookies.items()])
@@ -53,7 +49,7 @@ def on_message(ws, message):
     sending1 = {
         "mess": "chat",
         "data": {
-            "text": "Извиние, но болтяра немного...."
+            "text": "Извините, но Рома немножко пьян...."
         }
     }
     sending2 = {
@@ -82,11 +78,10 @@ def on_message(ws, message):
     message_object = json.loads(message)
     message_type   = message_object['mess']
     if( message_type == 'money' ):
-#        print("### ping P#@#!@#")
         ws.send(json.dumps(pong))
 
-    message_text = message_object['response']['text']
-    if( 'пьян' in message_text):
+    message_text = message_object['response']['textRaw']
+    if( 'Мультик' in message_text):
         ws.send(json.dumps(sending1))
 
 
@@ -103,11 +98,6 @@ def on_close(ws):
 
 def on_open(ws):
     print('### opened ###')
-#    init = {
-#        'type': 'connection_init'
-#    }
-#    init_conn = json.dumps(init)
-#    print('>> '+ init_conn)
     init = {
         "mess": "join",
         "data": {
