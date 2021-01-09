@@ -9,6 +9,7 @@ import time
 import websocket
 from websocket import create_connection, WebSocket
 
+
 login = os.environ.get('LIVACHA_USER')
 password = os.environ.get('LIVACHA_PASS')
 
@@ -17,15 +18,40 @@ payload = {
     'password': password,
     'remember': '1' }
 
+mess = {
+"mess": "chat",
+"data": {
+    "text": "Извините, но Рома немножко пьян...."}}
+
 pong = {
-    'mess': 'pong'}
+"mess": "pong",
+"data": {
+    "from": "money",
+    "imAlive": "1231231"}}
+
+headers = {
+      'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+        'Accept': 'application/json'}
+init = {
+        "mess": "join",
+        "data": {
+            "extended": {
+                "birth": "2005-02-01",
+                "city": "20317",
+                "height": "null",
+                "relat": "null",
+                "sex": "m",
+                "text": "null",
+                "weight": "null"
+            },
+            "room": "multik777"
+        }
+}
+
+find_message = "Мультик"
 
 def auth():
-    """TODO is to explain what things below doo"""
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
-        'Accept': 'application/json'
-        }
+    """Auth section to get cookies"""
 
     session = requests.Session()
     r = session.get("https://livacha.com/login", headers=headers)
@@ -46,31 +72,7 @@ def auth():
 def on_message(ws, message):
     global timeout_timer
     global timeout_interval
-    sending1 = {
-        "mess": "chat",
-        "data": {
-            "text": "Извините, но Рома немножко пьян...."
-        }
-    }
-    sending2 = {
-        "mess": "chat",
-        "data": {
-            "text": "Извините, мы немножко пьяны..."
-        }
-    }
-    sending3 = {
-        "mess": "chat",
-        "data": {
-            "text": "Извините, я немножко пьян..."
-        }
-    }
-    pong = {
-        "mess": "pong",
-        "data": {
-            "from": "money",
-            "imAlive": "1231231"
-        }
-    }
+
     print('### message ###')
 
     print('<< ' + message)
@@ -81,8 +83,8 @@ def on_message(ws, message):
         ws.send(json.dumps(pong))
 
     message_text = message_object['response']['textRaw']
-    if( 'Мультик' in message_text):
-        ws.send(json.dumps(sending1))
+    if( find_message in message_text):
+        ws.send(json.dumps(mess))
 
 
 def on_error(ws, error):
@@ -98,21 +100,6 @@ def on_close(ws):
 
 def on_open(ws):
     print('### opened ###')
-    init = {
-        "mess": "join",
-        "data": {
-            "extended": {
-                "birth": "2005-02-01",
-                "city": "20317",
-                "height": "null",
-                "relat": "null",
-                "sex": "m",
-                "text": "null",
-                "weight": "null"
-            },
-            "room": "multik777"
-        }
-    }
     init_conn = json.dumps(init)
     print('>> '+ init_conn)
     ws.send(init_conn)
