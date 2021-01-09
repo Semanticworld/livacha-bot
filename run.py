@@ -18,10 +18,15 @@ payload = {
     'password': password,
     'remember': '1' }
 
-mess = {
+multik = {
 "mess": "chat",
 "data": {
     "text": "Извините, но Рома немножко пьян...."}}
+
+hello = {
+"mess": "chat",
+"data": {
+    "text": "Здарова Земеля, как сам?"}}
 
 pong = {
 "mess": "pong",
@@ -32,6 +37,7 @@ pong = {
 headers = {
       'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
         'Accept': 'application/json'}
+
 init = {
         "mess": "join",
         "data": {
@@ -44,7 +50,7 @@ init = {
                 "text": "null",
                 "weight": "null"
             },
-            "room": "multik777"
+            "room": 'uniq_roomid'
         }
 }
 
@@ -68,6 +74,16 @@ def auth():
 
     return headers
 
+def roomSwitcher(ws,message):
+    print ('### Room Switcher###')
+    init_conn = json.dumps(init)
+    message_object = json.loads(message)
+    if(message_object['response']['type'] == "publish"):
+        roomid = message_object['response']['room']['alias']
+        init_conn = json.dumps(init).replace("uniq_roomid",roomid)
+        ws.send(init_conn)
+        time.sleep(10)
+        ws.send(json.dumps(hello))
 
 def on_message(ws, message):
     global timeout_timer
@@ -82,10 +98,13 @@ def on_message(ws, message):
     if( message_type == 'money' ):
         ws.send(json.dumps(pong))
 
-    message_text = message_object['response']['textRaw']
-    if( find_message in message_text):
-        ws.send(json.dumps(mess))
+    if( message_type == 'streamsUpdate' ):
+        roomSwitcher(ws,message)
 
+    if( message_type == 'message' ):
+        message_text = message_object['response']['textRaw']
+        if( find_message in message_text):
+            ws.send(json.dumps(multik))
 
 def on_error(ws, error):
     print('### error ###')
@@ -102,7 +121,7 @@ def on_open(ws):
     print('### opened ###')
     init_conn = json.dumps(init)
     print('>> '+ init_conn)
-    ws.send(init_conn)
+#    ws.send(init_conn)
 
 if __name__ == "__main__":
     websocket.enableTrace(True)
