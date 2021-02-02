@@ -38,7 +38,7 @@ headers = {
       'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
         'Accept': 'application/json'}
 
-init = {
+join = {
         "mess": "join",
         "data": {
             "extended": {
@@ -53,6 +53,23 @@ init = {
             "room": 'uniq_roomid'
         }
 }
+
+leave = {
+        "mess": "leave",
+        "data": {
+            "extended": {
+                "birth": "2005-02-01",
+                "city": "20317",
+                "height": "null",
+                "relat": "null",
+                "sex": "m",
+                "text": "null",
+                "weight": "null"
+            },
+            "room": 'uniq_roomid'
+        }
+}
+
 
 find_message = "Мультик"
 
@@ -76,11 +93,12 @@ def auth():
 
 def roomSwitcher(ws,message):
     print ('### Room Switcher###')
-    init_conn = json.dumps(init)
+    ws.send(json.dumps(leave))
+    init_conn = json.dumps(join)
     message_object = json.loads(message)
     if(message_object['response']['type'] == "publish"):
         roomid = message_object['response']['room']['alias']
-        init_conn = json.dumps(init).replace("uniq_roomid",roomid)
+        init_conn = json.dumps(join).replace("uniq_roomid",roomid)
         ws.send(init_conn)
         time.sleep(10)
         ws.send(json.dumps(hello))
@@ -119,7 +137,7 @@ def on_close(ws):
 
 def on_open(ws):
     print('### opened ###')
-    init_conn = json.dumps(init)
+    init_conn = json.dumps(join)
     print('>> '+ init_conn)
 #    ws.send(init_conn)
 
