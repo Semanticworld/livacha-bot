@@ -93,10 +93,10 @@ def auth():
 
 def roomSwitcher(ws,message):
     print ('### Room Switcher###')
-    ws.send(json.dumps(leave))
     init_conn = json.dumps(join)
     message_object = json.loads(message)
     if(message_object['response']['type'] == "publish"):
+        ws.send(json.dumps(leave))
         roomid = message_object['response']['room']['alias']
         init_conn = json.dumps(join).replace("uniq_roomid",roomid)
         ws.send(init_conn)
